@@ -1,0 +1,14 @@
+2024-10-14 08:45:11,102 [INFO] [document_service] Iniciando generacion de documento DOC-2024-8835 con pago=tx_pay_902140
+2024-10-14 08:45:11,189 [INFO] [document_service] Documento DOC-2024-8835 generado exitosamente.
+2024-10-14 09:12:15,302 [INFO] [document_service] Iniciando generacion de documento DOC-2024-8841 con pago=tx_pay_902148
+2024-10-14 09:12:15,321 [ERROR] [document_service] Error en renderizado de DOC-2024-8841 (pago tx_pay_902148): KeyError: 'estado_civil'
+2024-10-14 09:18:42,410 [INFO] [document_service] Iniciando generacion de documento DOC-2024-8845 con pago=tx_pay_902151
+2024-10-14 09:18:42,501 [INFO] [document_service] Documento DOC-2024-8845 generado exitosamente.
+2024-10-14 09:35:04,115 [INFO] [document_service] Iniciando generacion de documento DOC-2024-8849 con pago=tx_pay_902155
+2024-10-14 09:35:04,132 [ERROR] [document_service] Error en renderizado de DOC-2024-8849 (pago tx_pay_902155): KeyError: 'profesion_oficio'
+2026-09-22 01:42:13,868 [INFO] [document_service] Iniciando generacion de documento DOC-2024-E0E9BB37 para cliente rut=15.342.198-4 con pago=tx_pay_902148
+2026-09-22 01:42:13,877 [ERROR] [document_service] Error en renderizado de DOC-2024-E0E9BB37 (pago tx_pay_902148): KeyError: 'estado_civil'
+2026-09-22 01:42:13,885 [INFO] [document_service] Iniciando generacion de documento DOC-2024-F0CEDBEB para cliente rut=15.342.198-4 con pago=tx_pay_902148
+2026-09-22 01:42:13,886 [ERROR] [document_service] Error en renderizado de DOC-2024-F0CEDBEB (pago tx_pay_902148): KeyError: 'estado_civil'
+2026-09-22 01:42:13,892 [INFO] [document_service] Iniciando generacion de documento DOC-2024-AA798C43 para cliente rut=18.234.567-8 con pago=tx_pay_902199
+2026-09-22 01:42:13,894 [INFO] [document_service] Documento DOC-2024-AA798C43 generado exitosamente.
