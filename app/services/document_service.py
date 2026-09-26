@@ -8,7 +8,7 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 
 from app.models import Client, NotarialDeed
-from app.services.renderer import find_missing_fields, render_notarial_deed
+from app.services.renderer import render_notarial_deed
 
 logger = logging.getLogger("document_service")
 logger.setLevel(logging.INFO)
@@ -95,18 +95,11 @@ def render_into_deed(db: Session, deed: NotarialDeed, client_dict: dict) -> Nota
 
     try:
         rendered = render_notarial_deed(deed.deed_type, client_dict, metadata)
-        missing = find_missing_fields(client_dict)
         deed.rendered_content = rendered
         deed.status = "COMPLETED"
-        deed.error_log = (
-            f"Datos pendientes de completar en notaria: {', '.join(missing)}" if missing else None
-        )
+        deed.error_log = None
         db.commit()
         db.refresh(deed)
-        if missing:
-            logger.warning(
-                f"Documento {deed.document_code} emitido con datos pendientes: {', '.join(missing)}"
-            )
         logger.info(f"Documento {deed.document_code} generado exitosamente.")
         return deed
     except KeyError as exc:
@@ -163,14 +156,13 @@ def reprocess_failed_deeds(db: Session, apply: bool = False) -> list[dict]:
             for field in CLIENT_FIELDS
             if getattr(client, field) is not None
         }
-        missing = find_missing_fields(client_dict)
         if not apply:
-            results.append({**result, "action": "would_reprocess", "missing_fields": missing})
+            results.append({**result, "action": "would_reprocess"})
             continue
 
         try:
             render_into_deed(db, deed, client_dict)
-            results.append({**result, "action": "reprocessed", "missing_fields": missing})
+            results.append({**result, "action": "reprocessed"})
         except Exception as exc:
             results.append({**result, "action": "failed", "reason": str(exc)})
 

@@ -38,14 +38,13 @@ Cliente sin estado_civil / profesion_oficio (columnas nullable en clients; perfi
 
 | Cambio | Archivo |
 |---|---|
-| `estado_civil` y `profesion_oficio` se leen con `.get()`. Si faltan, se imprime una línea en blanco (`MISSING_FIELD_PLACEHOLDER`) para completar en notaría. `full_name` y `rut` siguen siendo obligatorios | `app/services/renderer.py` |
-| `find_missing_fields()` detecta los datos faltantes. El deed queda `COMPLETED` y `error_log` indica qué completar, visible en `GET /documents/{code}/status` | `renderer.py`, `document_service.py` |
+| `estado_civil` y `profesion_oficio` se leen con `.get()`. Si faltan, se **omite** la cláusula completa del texto (`_clause()`), así no queda ni "estado civil None" ni una coma colgando. El resto de la plantilla no cambia | `app/services/renderer.py` |
 | **Idempotencia por `payment_id`:** si el pago ya tiene un deed emitido, se devuelve ese. Si tiene uno fallido, se reprocesa el mismo registro sin crear otro | `app/services/document_service.py` |
 | Fecha en español, sin depender del locale (`format_spanish_date`) | `document_service.py` |
 | `reprocess_failed_deeds()` y su CLI: toma los deeds `FAILED` con pago `COMPLETED`, reprocesa solo el intento más reciente de cada pago, reconstruye los datos desde `clients` y **por defecto corre en dry-run** | `document_service.py`, `scripts/reprocess_failed_deeds.py` |
-| 6 tests de regresión: campos faltantes, `null` explícito, fecha en español, idempotencia, reprocesamiento con dry-run y apply | `tests/test_inc_4092.py` |
+| 6 tests de regresión: omisión de campos, `null` explícito, cláusulas presentes cuando hay dato, fecha en español, idempotencia, reprocesamiento con dry-run y apply | `tests/test_inc_4092.py` |
 
-**Por qué una línea en blanco y no rechazar con 422.** Los tests existentes esperan `COMPLETED` para un cliente sin esos campos. La operación necesitaba un borrador ese mismo día, y Legal se ofreció a validarlo. La línea en blanco no inventa datos legales, porque el dato se completa en notaría, y el `error_log` deja trazabilidad. La alternativa, validar antes de cobrar y responder 422, es más estricta, pero habría dejado sin documento a los clientes que ya estaban en la notaría.
+**Por qué omitir y no rechazar.** Según el criterio de Legal, la validez de un poder notarial simple solo exige nombre completo, RUT y domicilio. Omitir el estado civil y la profesión no invalida la escritura ante notaría. Por eso el sistema no debe bloquear la emisión por esos campos, y tampoco hace falta inventar un valor ni dejar una línea para completar. Esto coincide con los tests existentes, que esperan `COMPLETED` para un cliente sin esos datos.
 
 **Verificación:** `pytest` → 13/13, repetible en dos corridas seguidas sobre la misma BD. En una BD que simula el incidente, el script recupera `DOC-2024-8841` y `DOC-2024-8849` y omite `DOC-2024-8853` porque su cliente no existe.
 
@@ -75,5 +74,5 @@ python -m scripts.reprocess_failed_deeds --apply    # 2. aplicar
 
 1. Rotar las credenciales del proveedor (riesgo 1). Es lo más urgente y no depende de este PR.
 2. Deploy del fix y ejecución del script en dry-run sobre producción. Revisar el resultado con Operaciones y luego correr `--apply`.
-3. Enviar a Legal la lista de clientes con datos pendientes (`error_log` con "Datos pendientes") y completar esas fichas en `clients`.
+3. Revisar a mano los deeds que el script informe como `skipped` (por ejemplo, un cliente inexistente en `clients`).
 4. Corregir el hash de certificación (riesgo 2) antes de la siguiente entrega del proveedor.
