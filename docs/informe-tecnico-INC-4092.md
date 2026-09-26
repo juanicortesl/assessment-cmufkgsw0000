@@ -65,10 +65,11 @@ python -m scripts.reprocess_failed_deeds --apply    # 2. aplicar
 | 3 | El token del partner viaja en el cuerpo del payload (`partner_token`) | `prepare_certification_payload` | Moverlo a un header de autenticación y no loguear payloads |
 | 4 | Timeout de 30 s con la notaría externa, sin reintentos ni circuit breaker | `NOTARY_PARTNER_TIMEOUT_SECONDS=30` | En emisiones urgentes, un proveedor lento bloquea workers. Bajar el timeout y encolar la certificación |
 | 5 | Cobro confirmado antes de generar el documento | `payment_status="COMPLETED"` al crear el deed | Validar los datos antes del cobro, o bien capturar el pago solo cuando el documento esté emitido |
-| 6 | Logs en un archivo local versionado, con RUT (dato personal) | `logs/rendering_errors.log` está en git. Los tests escriben en él | Loguear a stdout hacia un agregador, sacar `logs/` del repo y enmascarar el RUT |
-| 7 | Esquema creado con `create_all` al importar y sin migraciones | `app/main.py`; `alembic/versions/` no existe | Generar la migración inicial y aplicar el esquema con Alembic en el deploy |
-| 8 | Dependencias sin versión fija | `requirements.txt` usa solo `>=` | Usar un lockfile. Hoy `starlette` ya emite una deprecación de `httpx` en los tests |
-| 9 | Los tests comparten `local.db` sin aislamiento | `tests/conftest.py` | Crear una BD temporal por sesión de tests. Los tests nuevos usan IDs únicos para no depender del estado |
+| 6 | **Domicilio inventado si falta** | `renderer.py`: `client_data.get("address", "Santiago")` y `commune` con el mismo default. Según Legal, el domicilio es obligatorio para la validez del poder, pero hoy se emite con "Santiago" si no viene | Tratar `address` como obligatorio: si falta, no emitir y dejar el pago trazado para regenerar. Se dejó fuera de este PR para no cambiar el comportamiento en plena operación. Pasa lo mismo con `nacionalidad`, que siempre sale "chilena" porque el esquema no tiene ese campo |
+| 7 | Logs en un archivo local versionado, con RUT (dato personal) | `logs/rendering_errors.log` está en git. Los tests escriben en él | Loguear a stdout hacia un agregador, sacar `logs/` del repo y enmascarar el RUT |
+| 8 | Esquema creado con `create_all` al importar y sin migraciones | `app/main.py`; `alembic/versions/` no existe | Generar la migración inicial y aplicar el esquema con Alembic en el deploy |
+| 9 | Dependencias sin versión fija | `requirements.txt` usa solo `>=` | Usar un lockfile. Hoy `starlette` ya emite una deprecación de `httpx` en los tests |
+| 10 | Los tests comparten `local.db` sin aislamiento | `tests/conftest.py` | Crear una BD temporal por sesión de tests. Los tests nuevos usan IDs únicos para no depender del estado |
 
 ## 5. Próximos pasos
 
@@ -76,3 +77,4 @@ python -m scripts.reprocess_failed_deeds --apply    # 2. aplicar
 2. Deploy del fix y ejecución del script en dry-run sobre producción. Revisar el resultado con Operaciones y luego correr `--apply`.
 3. Revisar a mano los deeds que el script informe como `skipped` (por ejemplo, un cliente inexistente en `clients`).
 4. Corregir el hash de certificación (riesgo 2) antes de la siguiente entrega del proveedor.
+5. Hacer obligatorio el domicilio en la emisión (riesgo 6), coordinado con Operaciones.
