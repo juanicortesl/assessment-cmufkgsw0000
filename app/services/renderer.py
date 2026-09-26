@@ -23,6 +23,18 @@ TEMPLATES = {
     ),
 }
 
+# Datos de comparecencia que pueden venir vacios (p. ej. clientes migrados sin ficha completa).
+# Se dejan como linea en blanco para completarse en notaria en vez de abortar la emision.
+OPTIONAL_APPEARANCE_FIELDS = ("estado_civil", "profesion_oficio")
+MISSING_FIELD_PLACEHOLDER = "____________________"
+
+
+def find_missing_fields(client_data: dict) -> list[str]:
+    """
+    Retorna los datos de comparecencia opcionales que no vienen informados.
+    """
+    return [field for field in OPTIONAL_APPEARANCE_FIELDS if not client_data.get(field)]
+
 
 def build_document_context(client_data: dict, deed_metadata: dict) -> dict:
     """
@@ -39,8 +51,8 @@ def build_document_context(client_data: dict, deed_metadata: dict) -> dict:
         "cliente_domicilio": client_data.get("address", "Santiago"),
         "cliente_comuna": client_data.get("commune", "Santiago"),
         "cliente_nacionalidad": client_data.get("nacionalidad", "chilena"),
-        "cliente_estado_civil": client_data["estado_civil"],
-        "cliente_profesion": client_data["profesion_oficio"],
+        "cliente_estado_civil": client_data.get("estado_civil") or MISSING_FIELD_PLACEHOLDER,
+        "cliente_profesion": client_data.get("profesion_oficio") or MISSING_FIELD_PLACEHOLDER,
     }
     return context
 
