@@ -56,6 +56,19 @@ def test_render_includes_optional_fields_when_present():
     assert "profesion" not in result
 
 
+def test_render_treats_blank_optional_fields_as_missing_and_trims_values():
+    client_dict = {
+        "rut": "15.342.198-4",
+        "full_name": "Juan Morales S.",
+        "address": "Av. Providencia 1240",
+        "estado_civil": "   ",
+        "profesion_oficio": " Contador ",
+    }
+    result = render_notarial_deed("PODER_ESPECIAL", client_dict, METADATA)
+    assert "de nacionalidad chilena, profesion u oficio Contador, domiciliado/a en" in result
+    assert "estado civil" not in result
+
+
 def test_endpoint_with_null_optional_fields_returns_200(client: TestClient):
     payload = {
         "client": {

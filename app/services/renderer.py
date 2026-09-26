@@ -27,6 +27,7 @@ TEMPLATES = {
 # Estado civil y profesion no son exigibles para la validez del poder ante notaria:
 # si no vienen informados se omiten del texto en vez de abortar la emision.
 def _clause(prefix: str, value: str | None) -> str:
+    value = (value or "").strip()
     return f"{prefix}{value}" if value else ""
 
 
